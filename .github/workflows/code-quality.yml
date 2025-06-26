@@ -8,7 +8,7 @@ on:
 
 jobs:
   code-quality:
-    runs-on: [self-hosted, linux, x64, github-runner-lxc]
+    runs-on: [self-hosted, linux, x64, proxmox-lxc]
 
     steps:
       - name: Checkout code
