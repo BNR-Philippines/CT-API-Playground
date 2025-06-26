@@ -2,22 +2,45 @@ name: Code Quality
 
 on:
   push:
+    branches:
+      - main # Or your main development branch
+      - develop
+    # Optionally add paths filtering for specific directories
+    # paths:
+    #   - 'backend/**' # If your Laravel app is in a 'backend' directory
 
 jobs:
   pint:
-    runs-on: self-hosted
+    # IMPORTANT: Update these labels to match your specific runner's labels!
+    # Common labels: self-hosted, linux, x64
+    # Plus your custom label, e.g., 'my-lxc-runner'
+    runs-on: [self-hosted, linux, x64, proxmox-lxc]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, dom, fileinfo
+          extensions: mbstring, dom, fileinfo, pdo_mysql # Add pdo_mysql if your app uses MySQL
+          tools: composer # Ensure composer is available
 
       - name: Install Composer dependencies
+        # If your Laravel app is in a subdirectory (e.g., 'backend/'), add:
+        # working-directory: ./backend
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Run Laravel Pint
-        run: ./vendor/bin/pint --test
+        # If your Laravel app is in a subdirectory (e.g., 'backend/'), add:
+        # working-directory: ./backend
+        run: ./vendor/bin/pint --test # Use --test for CI to detect issues
+
+      # Optional: Auto-fix and fail if changes were made (common for strict CI)
+      # - name: Run Laravel Pint (Fix and Check)
+      #   working-directory: ./backend # Adjust if needed
+      #   run: |
+      #     ./vendor/bin/pint --repair
+      #     git add .
+      #     git diff-index --quiet HEAD || (echo "::error::Code style issues found and fixed. Please commit them locally." && exit 1)
